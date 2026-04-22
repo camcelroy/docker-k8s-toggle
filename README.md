@@ -43,7 +43,7 @@ cd docker-k8s-toggle
 ./install.sh            # or: make install
 ```
 
-This symlinks `plugin/docker-k8s.30s.sh` into SwiftBar's plugin folder, so edits
+This symlinks `plugin/docker-k8s.2s.sh` into SwiftBar's plugin folder, so edits
 to the repo take effect without reinstalling.
 
 Uninstall:
@@ -107,8 +107,8 @@ item.
 `install.sh` will refuse to run until you've launched SwiftBar once and picked
 a folder. Open SwiftBar, let it prompt, then re-run.
 
-**SwiftBar refresh cadence.** The plugin filename is `docker-k8s.30s.sh`, so
-SwiftBar re-runs it every 30 seconds. After you click Toggle or Restart, the
+**SwiftBar refresh cadence.** The plugin filename is `docker-k8s.2s.sh`, so
+SwiftBar re-runs it every 2 seconds. After you click Toggle or Restart, the
 wrappers fire `swiftbar://refreshplugin?name=docker-k8s` so the menu bar
 updates immediately instead of waiting for the next tick.
 

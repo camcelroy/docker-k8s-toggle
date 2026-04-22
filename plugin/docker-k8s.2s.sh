@@ -25,6 +25,12 @@ REPO=$(cd -P "$(dirname "$SRC")/.." && pwd)
 
 state=$(k8s_state)
 
+# Fake animation for transitional states: SwiftBar can't animate an sfimage, so
+# each 2s refresh lands on a different hourglass frame. Order reads as sand
+# flowing top → middle → bottom; epoch/2 % 3 advances one frame per refresh.
+spin_frames=(hourglass.tophalf.filled hourglass hourglass.bottomhalf.filled)
+spin_icon="${spin_frames[$(( ($(date +%s) / 2) % 3 ))]}"
+
 # action is empty when toggling doesn't make sense (docker down, unknown state).
 case "$state" in
   enabled)
@@ -36,11 +42,11 @@ case "$state" in
     label="K8s: disabled"; action="Start K8s"
     ;;
   starting)
-    echo "| sfimage=arrow.triangle.2.circlepath color=#FFB000"
+    echo "| sfimage=$spin_icon color=#FFB000"
     label="K8s: starting…"; action="Stop K8s"
     ;;
   stopping)
-    echo "| sfimage=arrow.triangle.2.circlepath color=#FFB000"
+    echo "| sfimage=$spin_icon color=#FFB000"
     label="K8s: stopping…"; action="Start K8s"
     ;;
   docker-not-running)
