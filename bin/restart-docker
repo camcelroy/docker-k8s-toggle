@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=../lib/toggle.sh
+. "$HERE/../lib/toggle.sh"
+
+restart_docker
+open -g "swiftbar://refreshplugin?name=docker-k8s" >/dev/null 2>&1 || true

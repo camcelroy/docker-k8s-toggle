@@ -1,0 +1,38 @@
+#!/usr/bin/env bash
+# Thin wrapper invoked from the SwiftBar menu. Flips K8s and drives a faster
+# redraw cadence while the cluster is transitioning.
+set -euo pipefail
+
+HERE=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=../lib/toggle.sh
+. "$HERE/../lib/toggle.sh"
+
+toggle_k8s
+
+# Immediate redraw — catches the transition if the backend flipped intent
+# before the POST returned (common on warm machines).
+open -g "swiftbar://refreshplugin?name=docker-k8s" >/dev/null 2>&1 || true
+
+# Detached background poller. Fires refreshes while state is transitional.
+# Detached so the SwiftBar click handler returns fast.
+(
+  refresh_and_check() {
+    open -g "swiftbar://refreshplugin?name=docker-k8s" >/dev/null 2>&1 || true
+    local state
+    state=$(k8s_state 2>/dev/null || echo unknown)
+    case "$state" in
+      starting|stopping) return 1 ;;
+      *) return 0 ;;
+    esac
+  }
+
+  for _ in $(seq 1 10); do
+    sleep 0.5
+    refresh_and_check && exit 0
+  done
+  for _ in $(seq 1 25); do
+    sleep 2
+    refresh_and_check && exit 0
+  done
+) </dev/null >/dev/null 2>&1 &
+disown
