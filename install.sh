@@ -1,14 +1,27 @@
 #!/usr/bin/env bash
-# Symlink the SwiftBar plugin into SwiftBar's plugin folder.
+# Install the SwiftBar plugin.
+#
+# Default: copies plugin/, lib/, bin/ into ~/.local/share/docker-k8s-toggle,
+#          then symlinks the plugin into SwiftBar's plugin folder. The repo
+#          clone is not referenced at runtime and can be deleted afterward.
+# --dev:   symlinks SwiftBar at this repo instead, so edits take effect live.
+#          Deleting or moving the repo will break the menubar — use for
+#          development, not for everyday installs.
 set -euo pipefail
 
 DRY_RUN=false
+DEV=false
 for arg in "$@"; do
   case "$arg" in
     --dry-run) DRY_RUN=true ;;
+    --dev) DEV=true ;;
     -h|--help)
-      echo "Usage: $0 [--dry-run]"
-      echo "  Symlinks plugin/docker-k8s.2s.sh into SwiftBar's plugin folder."
+      cat <<EOF
+Usage: $0 [--dev] [--dry-run]
+  Default: copies files into ~/.local/share/docker-k8s-toggle; repo clone
+           can be deleted after install.
+  --dev:   symlinks SwiftBar directly at this repo for live edits.
+EOF
       exit 0
       ;;
     *)
@@ -19,7 +32,7 @@ for arg in "$@"; do
 done
 
 REPO=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
-PLUGIN_SRC="$REPO/plugin/docker-k8s.2s.sh"
+INSTALL_DIR="$HOME/.local/share/docker-k8s-toggle"
 
 run() {
   if $DRY_RUN; then
@@ -50,6 +63,19 @@ if [[ ! -d "$PLUGIN_DIR" ]]; then
   exit 1
 fi
 
+if $DEV; then
+  ROOT="$REPO"
+else
+  # Wipe and repopulate so an old install can't leak stale lib/bin files.
+  run rm -rf "$INSTALL_DIR"
+  run mkdir -p "$INSTALL_DIR"
+  run cp -R "$REPO/plugin" "$INSTALL_DIR/"
+  run cp -R "$REPO/lib"    "$INSTALL_DIR/"
+  run cp -R "$REPO/bin"    "$INSTALL_DIR/"
+  ROOT="$INSTALL_DIR"
+fi
+
+PLUGIN_SRC="$ROOT/plugin/docker-k8s.2s.sh"
 LINK="$PLUGIN_DIR/docker-k8s.2s.sh"
 
 # Remove stale symlinks from previous iterations of this plugin's filename.
@@ -74,6 +100,11 @@ if [[ ! -L "$LINK" ]]; then
 fi
 
 echo "✓ Installed: $LINK -> $PLUGIN_SRC"
+if $DEV; then
+  echo "  dev mode: live edits in $REPO take effect on the next 2s refresh."
+else
+  echo "  copy in $INSTALL_DIR — the repo clone is no longer needed."
+fi
 echo
 echo "If SwiftBar is running, it should pick up the plugin within 2s."
 echo "To force a reload: SwiftBar menu -> Preferences -> Refresh All."
