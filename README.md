@@ -43,14 +43,24 @@ cd docker-k8s-toggle
 ./install.sh            # or: make install
 ```
 
-This symlinks `plugin/docker-k8s.2s.sh` into SwiftBar's plugin folder, so edits
-to the repo take effect without reinstalling.
+This copies `plugin/`, `lib/`, and `bin/` into `~/.local/share/docker-k8s-toggle`
+and symlinks the plugin from SwiftBar's plugin folder at that copy. **The repo
+clone is not referenced at runtime** — once installed you can delete it.
+
+For development (live-edit loop against this repo instead of the installed
+copy):
+
+```sh
+./install.sh --dev      # symlinks SwiftBar at plugin/docker-k8s.2s.sh in the repo
+```
 
 Uninstall:
 
 ```sh
 ./uninstall.sh          # or: make uninstall
 ```
+
+This removes the SwiftBar symlink and `~/.local/share/docker-k8s-toggle`.
 
 ## How it works
 

@@ -68,11 +68,23 @@ echo
 
 echo "SwiftBar plugin folder:"
 plugin_dir=$(defaults read com.ameba.SwiftBar PluginDirectory 2>/dev/null || true)
+install_dir="$HOME/.local/share/docker-k8s-toggle"
 if [[ -n "$plugin_dir" ]]; then
   ok "PluginDirectory: $plugin_dir"
   symlink="$plugin_dir/docker-k8s.2s.sh"
   if [[ -L "$symlink" ]]; then
-    ok "Symlinked: $symlink -> $(readlink "$symlink")"
+    target=$(readlink "$symlink")
+    ok "Symlinked: $symlink -> $target"
+    if [[ "$target" == "$install_dir"/* ]]; then
+      ok "Install mode: copied ($install_dir)"
+    elif [[ -d "$install_dir" ]]; then
+      warn "Install mode: dev (symlink points outside $install_dir) — $install_dir also present; uninstall leftover or re-run install.sh"
+    else
+      ok "Install mode: dev (live edits from repo)"
+    fi
+    if [[ ! -e "$symlink" ]]; then
+      fail "Symlink target missing — menubar is broken until you re-run install.sh or ./uninstall.sh"
+    fi
   elif [[ -e "$symlink" ]]; then
     warn "Present but not a symlink: $symlink"
   else
