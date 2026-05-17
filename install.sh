@@ -107,4 +107,4 @@ else
 fi
 echo
 echo "If SwiftBar is running, it should pick up the plugin within 2s."
-echo "To force a reload: SwiftBar menu -> Preferences -> Refresh All."
+echo "To force a reload: SwiftBar menu -> Refresh all."
