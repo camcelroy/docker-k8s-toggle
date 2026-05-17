@@ -39,9 +39,18 @@ backend_post_fire() {
 restart_docker() {
   osascript -e 'quit app "Docker"' >/dev/null 2>&1 || true
   local i
-  for ((i = 0; i < 20; i++)); do
+  for ((i = 0; i < 10; i++)); do
     if ! docker_running; then break; fi
     sleep 1
   done
+  # Half-dead state: AppleScript-quit takes down the UI but com.docker.backend
+  # can be orphaned with an unresponsive socket, so `open -a Docker` no-ops
+  # (LaunchServices thinks Docker is still running) and we get stuck. Escalate
+  # to SIGKILL on anything left so the relaunch starts from a clean slate.
+  if docker_running; then
+    pkill -9 -x "Docker Desktop" 2>/dev/null || true
+    pkill -9 -f '/Applications/Docker.app/Contents/MacOS/com.docker.backend' 2>/dev/null || true
+    sleep 2
+  fi
   open -a Docker
 }
