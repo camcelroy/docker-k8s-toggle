@@ -27,7 +27,12 @@ backend_curl() {
 }
 
 # Kept for restart_docker's "wait for Docker to fully exit" loop, where the
-# socket disappears before the process does.
+# socket disappears before the process does. Checks both the UI app and the
+# backend daemon — they outlive each other in the stuck-state scenario where
+# AppleScript-quit closes the UI but leaves com.docker.backend orphaned.
+# pgrep -x on the backend name doesn't work: p_comm is truncated to 16 chars,
+# so "com.docker.backend" (18) never matches exactly. Match via -f instead.
 docker_running() {
-  pgrep -qx "Docker Desktop" || pgrep -qx Docker
+  pgrep -qx "Docker Desktop" \
+    || pgrep -qf '/Applications/Docker.app/Contents/MacOS/com.docker.backend'
 }
